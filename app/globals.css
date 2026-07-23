@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+/* Tüm renklerimiz ve font değişkenlerimiz Tailwind v4 ile burada */
+@theme {
+  --color-souls-bg: #0a0a0a;
+  --color-souls-gold: #d4af37;
+  --color-souls-border: #332b1f;
+  --color-souls-red: #7a2d2d;
+  --color-souls-green: #2d7a2d;
+  --color-souls-panel: #110e0a;
+  
+  --font-serif: var(--font-cinzel);
+  --font-sans: var(--font-inter);
+}
+
+/* VS Code'da '@theme' altı sarı çizilirse umursama, sorunsuz çalışacak */
+body {
+  background-color: var(--color-souls-bg);
+}

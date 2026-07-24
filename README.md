@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Düşenlerin Külliyatı - Boss Takipçisi 🗡️
 
-## Getting Started
+![Düşenlerin Külliyatı](https://imgur.com/tsrMe9j)
 
-First, run the development server:
+Soulslike oyunları (Elden Ring, Sekiro, Bloodborne vb.) için özenle tasarlanmış, görsel olarak çarpıcı bir Boss Takipçisi web uygulaması. Bu proje, oyuncuların en zorlu düşmanlara karşı ilerlemelerini, ölümlerini ve zaferlerini takip etmeleri için dinamik ve etkileşimli bir başvuru kaynağı (külliyat) olarak hizmet vermektedir.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Özellikler
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Dinamik Durum (State) Yönetimi:** React'in güçlü state yönetimi sayesinde toplam boss, toplam ölüm ve kesilen düşman sayılarının gerçek zamanlı olarak takip edilmesi.
+- **Özel Temalı Arayüz ve Deneyim (UI/UX):** FromSoftware oyunlarının estetiğinden ilham alan, özel tasarım karanlık fantastik bir arayüz. Tamamen Tailwind CSS ile oluşturulmuş özel açılır menüler (dropdown), karmaşık CSS stilleri ve duyarlı (responsive) tasarımlar içerir.
+- **Koşullu Görselleştirme (Conditional Rendering):** Etkileşimli öğeler (örneğin 'Ekle' butonu), kullanıcı girdisinin geçerliliğine bağlı olarak görsel durumlarını dinamik olarak değiştirir.
+- **Genişletilebilir Oyun Seçimi:** Kullanıcılar önceden tanımlanmış popüler oyunlardan seçim yapabilir veya dinamik form yapısı sayesinde kendi özel oyun isimlerini sorunsuzca ekleyebilirler.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+## 🛠️ Kullanılan Teknolojiler
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework:** [Next.js 15+](https://nextjs.org/) (App Router)
+- **Kütüphane:** [React](https://react.dev/)
+- **Stil (Styling):** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Dil:** JavaScript (ES6+)
 
-## Learn More
+## 🧠 Neler Öğrendim ve Uyguladım?
 
-To learn more about Next.js, take a look at the following resources:
+Bu projeyi geliştirmek, aşağıdaki konuları derinlemesine keşfetmemi ve uygulamamı sağladı:
+- **İleri Seviye Tailwind CSS:** İsteğe bağlı değerler (arbitrary values), özel CSS değişkenleri, katmanlı renk geçişleri (gradient) ve özel kaydırma çubukları (scrollbar) gibi sözde-öğe (pseudo-element) stillerini kullanarak piksellerine kadar mükemmel, son derece spesifik bir tasarım elde etme.
+- **React Hook'ları (useState, useEffect, useRef):** Tarayıcıların varsayılan sınırlamalarını aşmak için sıfırdan tamamen özelleştirilmiş ve erişilebilir arayüz bileşenleri (özel açılır menü vb.) inşa etme.
+- **Türetilmiş Durum (Derived State):** Fazladan state değişkenleri (gereksiz veriler) tutmadan, toplam ölüm ve kesilen boss sayıları gibi istatistikleri anlık ve etkili bir şekilde hesaplama.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📜 Lisans
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Bu proje açık kaynaklıdır ve MIT Lisansı altında kullanılabilir.

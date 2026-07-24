@@ -2,21 +2,21 @@ import { Cinzel, Inter } from 'next/font/google';
 import './globals.css';
 
 // Fontları indirirken ağırlıklarını ve CSS değişken isimlerini zorunlu tutuyoruz
-const cinzel = Cinzel({ 
-  subsets: ['latin'], 
+const cinzel = Cinzel({
+  subsets: ['latin'],
   weight: ['400', '600', '700', '900'],
-  variable: '--font-cinzel' 
+  variable: '--font-cinzel'
 });
 
-const inter = Inter({ 
-  subsets: ['latin'], 
+const inter = Inter({
+  subsets: ['latin'],
   weight: ['400', '500', '700'],
-  variable: '--font-inter' 
+  variable: '--font-inter'
 });
 
 export const metadata = {
-  title: 'Compendium of the Fallen',
-  description: 'A dark fantasy boss tracker',
+  title: 'Düşenlerin Külliyatı',
+  description: 'Bir Boss Takipçi Uygulaması',
 };
 
 export default function RootLayout({ children }) {

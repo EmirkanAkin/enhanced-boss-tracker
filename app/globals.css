@@ -17,3 +17,35 @@
 body {
   background-color: var(--color-souls-bg);
 }
+
+/* ─────────────────────────────────────────────────────────────── */
+/* 🎓 CUSTOM SCROLLBAR                                            */
+/* Varsayılan gri scrollbar temamıza uymuyor.                     */
+/* ::-webkit-scrollbar → Chrome, Edge, Safari için çalışır        */
+/* scrollbar-width, scrollbar-color → Firefox için çalışır        */
+/*                                                                 */
+/* .custom-scrollbar sınıfını istediğin elemente ekleyerek        */
+/* sadece o elemanda bu scrollbar'ı kullanabilirsin.               */
+/* ─────────────────────────────────────────────────────────────── */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;  /* Scrollbar genişliği — 6px ince ve zarif */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #0e0c08;  /* Ray arkaplanı — dropdown arkaplanıyla aynı */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #332b1f;  /* Sürükleme kısmı — koyu altın */
+  border-radius: 3px;   /* Yuvarlatılmış köşeler */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #8A7A4A;  /* Fare gelince daha parlak altın */
+}
+
+/* Firefox desteği */
+.custom-scrollbar {
+  scrollbar-width: thin;                    /* İnce scrollbar */
+  scrollbar-color: #332b1f #0e0c08;         /* thumb-renk ray-renk */
+}

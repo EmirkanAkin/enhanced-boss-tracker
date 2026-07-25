@@ -8,7 +8,7 @@
   --color-souls-red: #7a2d2d;
   --color-souls-green: #2d7a2d;
   --color-souls-panel: #110e0a;
-  
+
   --font-serif: var(--font-cinzel);
   --font-sans: var(--font-inter);
 }
@@ -16,6 +16,14 @@
 /* VS Code'da '@theme' altı sarı çizilirse umursama, sorunsuz çalışacak */
 body {
   background-color: var(--color-souls-bg);
+  background-image:
+    radial-gradient(88% 78% at 50% 38%, rgba(0, 0, 0, 0.75) 22%, rgba(0, 0, 0, 0.92) 62%, rgba(0, 0, 0, 1) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.70) 28%, rgba(0, 0, 0, 0.75) 62%, rgba(0, 0, 0, 1) 100%),
+    url('/arkaplan.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
 }
 
 /* ─────────────────────────────────────────────────────────────── */
@@ -28,24 +36,31 @@ body {
 /* sadece o elemanda bu scrollbar'ı kullanabilirsin.               */
 /* ─────────────────────────────────────────────────────────────── */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;  /* Scrollbar genişliği — 6px ince ve zarif */
+  width: 6px;
+  /* Scrollbar genişliği — 6px ince ve zarif */
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #0e0c08;  /* Ray arkaplanı — dropdown arkaplanıyla aynı */
+  background: #0e0c08;
+  /* Ray arkaplanı — dropdown arkaplanıyla aynı */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #332b1f;  /* Sürükleme kısmı — koyu altın */
-  border-radius: 3px;   /* Yuvarlatılmış köşeler */
+  background: #332b1f;
+  /* Sürükleme kısmı — koyu altın */
+  border-radius: 3px;
+  /* Yuvarlatılmış köşeler */
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #8A7A4A;  /* Fare gelince daha parlak altın */
+  background: #8A7A4A;
+  /* Fare gelince daha parlak altın */
 }
 
 /* Firefox desteği */
 .custom-scrollbar {
-  scrollbar-width: thin;                    /* İnce scrollbar */
-  scrollbar-color: #332b1f #0e0c08;         /* thumb-renk ray-renk */
+  scrollbar-width: thin;
+  /* İnce scrollbar */
+  scrollbar-color: #332b1f #0e0c08;
+  /* thumb-renk ray-renk */
 }

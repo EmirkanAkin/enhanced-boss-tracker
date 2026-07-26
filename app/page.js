@@ -359,7 +359,10 @@ export default function Home() {
   // ─────────────────────────────────────────────────────────────
   const [isMounted, setIsMounted] = useState(false);
   const [bosslar, setBosslar] = useState([]);
-  const [hunterId, setHunterId] = useState("");
+  const [myHunterId, setMyHunterId] = useState("");
+  const [activeHunterId, setActiveHunterId] = useState("");
+  const [activeRole, setActiveRole] = useState("owner");
+  const [isKindled, setIsKindled] = useState(false);
 
   // Hydration korumalı mount: hunter_id yükle veya üret
   useEffect(() => {
@@ -369,25 +372,36 @@ export default function Home() {
         storedId = generateHunterID();
         localStorage.setItem("hunter_id", storedId);
       }
-      setHunterId(storedId);
+      setMyHunterId(storedId);
+      setActiveHunterId(storedId);
+      setActiveRole("owner");
+      
+      const storedKindled = localStorage.getItem("is_kindled") === "true";
+      setIsKindled(storedKindled);
     } catch (e) {
       console.warn("localStorage erişim hatası:", e);
     }
     setIsMounted(true);
   }, []);
 
+  const toggleKindle = () => {
+    const newVal = !isKindled;
+    setIsKindled(newVal);
+    localStorage.setItem("is_kindled", newVal);
+  };
+
   // Firebase Realtime Listener
   useEffect(() => {
-    if (!hunterId) return;
+    if (!activeHunterId) return;
 
-    const unsub = onSnapshot(doc(db, "hunters", hunterId), (docSnap) => {
+    const unsub = onSnapshot(doc(db, "hunters", activeHunterId), (docSnap) => {
       if (docSnap.exists() && docSnap.data().bosslar) {
         setBosslar(docSnap.data().bosslar);
       }
     });
 
     return () => unsub(); // cleanup
-  }, [hunterId]);
+  }, [activeHunterId]);
 
   // ─────────────────────────────────────────────────────────────
   // 🎓 FORM STATE'LERİ
@@ -498,6 +512,7 @@ export default function Home() {
 
   // Yeni boss ekle
   const bossEkle = () => {
+    if (activeRole === 'observer') return;
     if (!bossAdi.trim()) return;
     const newId = Date.now();
     const query = bossAdi.trim().toLowerCase();
@@ -537,8 +552,8 @@ export default function Home() {
 
     // Firestore'a yaz
     const yeniDizi = [...bosslar, yeniBoss];
-    if (hunterId) {
-      setDoc(doc(db, "hunters", hunterId), { bosslar: yeniDizi }, { merge: true });
+    if (activeHunterId) {
+      setDoc(doc(db, "hunters", activeHunterId), { bosslar: yeniDizi }, { merge: true });
     }
 
     setBossAdi("");
@@ -555,16 +570,18 @@ export default function Home() {
 
   // Ölüm sayısını 1 artır
   const olumArttir = (id) => {
+    if (activeRole === 'observer') return;
     setOlumAnimasyonId(id);
     const yeniDizi = bosslar.map(b => b.id === id ? { ...b, olumler: b.olumler + 1 } : b);
-    if (hunterId) {
-      setDoc(doc(db, "hunters", hunterId), { bosslar: yeniDizi }, { merge: true });
+    if (activeHunterId) {
+      setDoc(doc(db, "hunters", activeHunterId), { bosslar: yeniDizi }, { merge: true });
     }
     setTimeout(() => setOlumAnimasyonId(null), 400);
   };
 
   // Boss'u kesildi olarak işaretle
   const kesil = (id) => {
+    if (activeRole === 'observer') return;
     // Kılıç ses efektini çal
     if (slashAudioRef.current) {
       slashAudioRef.current.currentTime = 0;
@@ -577,8 +594,8 @@ export default function Home() {
     // Animasyonu izlemesi için 800ms bekle ve alt listeye at
     setTimeout(() => {
       const yeniDizi = bosslar.map(b => b.id === id ? { ...b, kesildiMi: true } : b);
-      if (hunterId) {
-        setDoc(doc(db, "hunters", hunterId), { bosslar: yeniDizi }, { merge: true });
+      if (activeHunterId) {
+        setDoc(doc(db, "hunters", activeHunterId), { bosslar: yeniDizi }, { merge: true });
       }
       setKesilenAnimasyonId(null);
     }, 800);
@@ -586,6 +603,7 @@ export default function Home() {
 
   // Boss'u listeden sil
   const sil = (id) => {
+    if (activeRole === 'observer') return;
     setSilinenAnimasyonId(id);
     setTimeout(() => {
       const updated = bosslar.filter(b => b.id !== id);
@@ -597,8 +615,8 @@ export default function Home() {
         setDisplayedTab("HEPSİ");
       }
 
-      if (hunterId) {
-        setDoc(doc(db, "hunters", hunterId), { bosslar: updated }, { merge: true });
+      if (activeHunterId) {
+        setDoc(doc(db, "hunters", activeHunterId), { bosslar: updated }, { merge: true });
       }
       setSilinenAnimasyonId(null);
       showToast("Mühür Kırıldı", "Düşman kalıcı olarak silindi", "", "success");
@@ -611,6 +629,11 @@ export default function Home() {
   return (
     <main className="min-h-screen lg:min-h-[80vh] flex flex-col items-center pt-12 md:pt-24 px-4 md:px-8 relative overflow-hidden">
       {/* ─────────────────────────────────────────────────────────── */}
+      {/* 🔥 KINDLED (YÜKSEK KONTRAST) ARKA PLAN OVERLAY                */}
+      {/* ─────────────────────────────────────────────────────────── */}
+      <div className={`fixed inset-0 z-0 pointer-events-none transition-colors duration-500 ${isKindled ? 'bg-[#1a1917]/85' : 'bg-transparent'}`}></div>
+
+      {/* ─────────────────────────────────────────────────────────── */}
       {/* 🎓 SPLASH SCREEN (GİRİŞ EKRANI)                              */}
       {/* ─────────────────────────────────────────────────────────── */}
       {!hasEntered && <SplashScreen onEnter={() => setHasEntered(true)} audioPlay={triggerAudioPlay} />}
@@ -621,8 +644,9 @@ export default function Home() {
       <PairingModal 
         isOpen={isPairingModalOpen} 
         onClose={() => setIsPairingModalOpen(false)} 
-        hunterId={hunterId} 
-        setHunterId={setHunterId} 
+        myHunterId={myHunterId} 
+        setActiveHunterId={setActiveHunterId} 
+        setActiveRole={setActiveRole}
         showToast={showToast} 
       />
 
@@ -656,6 +680,15 @@ export default function Home() {
               audioRef.current.play().catch(e => console.log("Oynatma hatası:", e));
             }
           }}
+          myHunterId={myHunterId}
+          activeHunterId={activeHunterId}
+          onReturnHome={() => {
+            setActiveHunterId(myHunterId);
+            setActiveRole('owner');
+            showToast("Geri Dönüldü", "Kendi dünyanıza başarıyla döndünüz.", "", "success");
+          }}
+          isKindled={isKindled}
+          toggleKindle={toggleKindle}
         />
         <audio ref={audioRef} src="/muzik.mp3" loop />
         <audio ref={slashAudioRef} src="/slashsound.mp3" preload="auto" />
@@ -663,105 +696,107 @@ export default function Home() {
         {/* ─────────────────────────────────────────────────────── */}
         {/* 🎓 INPUT PANELİ                                        */}
         {/* ─────────────────────────────────────────────────────── */}
-        <div className="w-full max-w-5xl border border-[#4a3f2d]/70 p-[14px] md:p-6 relative flex flex-col gap-4 bg-[#d4af37]/[0.02]">
-          {/* Köşe Süslemeleri */}
-          <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#b8a665]"></div>
-          <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#b8a665]"></div>
-          <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#b8a665]"></div>
-          <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#b8a665]"></div>
+        {activeRole !== 'observer' && (
+          <div className="w-full max-w-5xl border border-[#4a3f2d]/70 p-[14px] md:p-6 relative flex flex-col gap-4 bg-[#d4af37]/[0.02]">
+            {/* Köşe Süslemeleri */}
+            <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-[#b8a665]"></div>
+            <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-[#b8a665]"></div>
+            <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-[#b8a665]"></div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-[#b8a665]"></div>
 
-          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-start">
-            {/* Boss İsmi Inputu */}
-            <div className="w-full md:flex-1 border border-[#b89e6e]/30 bg-black/65 transition-colors hover:border-[#b89e6e]/60 focus-within:border-[#d4af37] flex flex-col justify-center">
-              <input
-                type="text"
-                placeholder="BOSS ADINI GİRİN..."
-                value={bossAdi}
-                onChange={(e) => setBossAdi(e.target.value)}
-                onKeyDown={inputKeyDown}
-                className="w-full bg-transparent px-[14px] py-[12px] md:px-5 md:py-3 h-[44px] text-xs font-serif tracking-widest text-stone-200 placeholder:text-[#8A7A4A]/70 focus:outline-none uppercase"
-              />
-            </div>
-
-            {/* ─────────────────────────────────────────────────── */}
-            {/* 🎓 CUSTOM DROPDOWN                                  */}
-            {/* ─────────────────────────────────────────────────── */}
-            <div className="w-full md:w-56 flex flex-col gap-2 relative" ref={acilirMenuRef}>
-              {/* Dropdown Trigger */}
-              <div
-                className="border border-[#b89e6e]/30 bg-black/65 transition-colors hover:border-[#b89e6e]/60 relative cursor-pointer flex items-center justify-between px-[14px] py-[12px] md:px-4 md:py-3"
-                onClick={() => setAcilirMenuAcikMi(!acilirMenuAcikMi)}
-              >
-                <div className="text-xs font-serif tracking-widest text-stone-200 uppercase">
-                  {digerSecildiMi
-                    ? "DİĞER..."
-                    : seciliOyun
-                      ? seciliOyun.toUpperCase()
-                      : <span className="text-[#4a3f2d]">BİR OYUN SEÇİN</span>
-                  }
-                </div>
-                <div className={`text-[#8A7A4A] transition-transform flex-shrink-0 ${acilirMenuAcikMi ? "rotate-180" : ""}`}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </div>
+            <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-start">
+              {/* Boss İsmi Inputu */}
+              <div className={`w-full md:flex-1 border transition-colors duration-500 flex flex-col justify-center focus-within:border-[#d4af37] ${isKindled ? 'bg-white/10 border-white/30 hover:border-white/50' : 'bg-black/65 border-[#b89e6e]/30 hover:border-[#b89e6e]/60'}`}>
+                <input
+                  type="text"
+                  placeholder="BOSS ADINI GİRİN..."
+                  value={bossAdi}
+                  onChange={(e) => setBossAdi(e.target.value)}
+                  onKeyDown={inputKeyDown}
+                  className="w-full bg-transparent px-[14px] py-[12px] md:px-5 md:py-3 h-[44px] text-xs font-serif tracking-widest text-stone-200 placeholder:text-[#8A7A4A]/70 focus:outline-none uppercase"
+                />
               </div>
 
-              {/* DROPDOWN MENÜ */}
-              {acilirMenuAcikMi && (
-                <ul className="absolute top-full left-0 right-0 mt-1 border border-[#332b1f] bg-[#0e0c08] z-50 max-h-72 overflow-y-auto custom-scrollbar">
-                  {oyunSecenekleri.map((oyun) => (
-                    <li
-                      key={oyun}
-                      className={`px-4 py-2.5 text-xs font-serif tracking-widest cursor-pointer transition-all
-                      ${(oyun === "Diğer" && digerSecildiMi) || (!digerSecildiMi && oyun === seciliOyun)
-                          ? "text-[#d4af37] bg-[#1a1508]"
-                          : "text-[#8A7A4A] hover:text-[#d4af37] hover:bg-[#1a1508] hover:pl-5"
-                        }`}
-                      onClick={() => {
-                        if (oyun === "Diğer") {
-                          setDigerSecildiMi(true);
-                          setSeciliOyun("");
-                        } else {
-                          setDigerSecildiMi(false);
-                          setSeciliOyun(oyun);
-                        }
-                        setAcilirMenuAcikMi(false);
-                      }}
-                    >
-                      {oyun}
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {/* "Diğer" seçilince altına oyun adı inputu açılır */}
-              {digerSecildiMi && (
-                <div className="border border-[#b89e6e]/30 bg-white/5 transition-colors hover:border-[#b89e6e]/60 focus-within:border-[#d4af37] flex flex-col justify-center">
-                  <input
-                    type="text"
-                    placeholder="OYUN ADINI GİRİN..."
-                    value={seciliOyun}
-                    onChange={(e) => setSeciliOyun(e.target.value)}
-                    className="w-full bg-transparent px-[14px] py-[12px] md:px-5 md:py-3 h-[44px] text-xs font-serif tracking-widest text-stone-200 placeholder:text-[#8A7A4A]/70 focus:outline-none uppercase"
-                  />
+              {/* ─────────────────────────────────────────────────── */}
+              {/* 🎓 CUSTOM DROPDOWN                                  */}
+              {/* ─────────────────────────────────────────────────── */}
+              <div className="w-full md:w-56 flex flex-col gap-2 relative" ref={acilirMenuRef}>
+                {/* Dropdown Trigger */}
+                <div
+                  className={`border transition-colors duration-500 relative cursor-pointer flex items-center justify-between px-[14px] py-[12px] md:px-4 md:py-3 ${isKindled ? 'bg-white/10 border-white/30 hover:border-white/50' : 'bg-black/65 border-[#b89e6e]/30 hover:border-[#b89e6e]/60'}`}
+                  onClick={() => setAcilirMenuAcikMi(!acilirMenuAcikMi)}
+                >
+                  <div className="text-xs font-serif tracking-widest text-stone-200 uppercase">
+                    {digerSecildiMi
+                      ? "DİĞER..."
+                      : seciliOyun
+                        ? seciliOyun.toUpperCase()
+                        : <span className="text-[#4a3f2d]">BİR OYUN SEÇİN</span>
+                    }
+                  </div>
+                  <div className={`text-[#8A7A4A] transition-transform flex-shrink-0 ${acilirMenuAcikMi ? "rotate-180" : ""}`}>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* EKLE BUTONU — Di\u011fer se\u00e7iliyse oyun ad\u0131 girilene kadar kapal\u0131 */}
-            <button
-              onClick={bossEkle}
-              disabled={!bossAdi.trim() || (digerSecildiMi && !seciliOyun.trim())}
-              className={`w-full md:w-40 border text-xs font-serif tracking-[0.2em] min-h-[44px] px-[20px] py-[13px] md:py-3 transition-all flex justify-center items-center gap-2 uppercase self-center ${bossAdi.trim() && !(digerSecildiMi && !seciliOyun.trim())
-                ? "border-[#4a3f2d] bg-[#181208] text-[#8A7A4A] hover:bg-[#1e1810] hover:text-[#b8a665] cursor-pointer"
-                : "border-[#332b1f] bg-[#050505] text-[#332b1f] cursor-not-allowed"
-                }`}
-            >
-              <span>+</span> MÜHÜRLE
-            </button>
+                {/* DROPDOWN MENÜ */}
+                {acilirMenuAcikMi && (
+                  <ul className="absolute top-full left-0 right-0 mt-1 border border-[#332b1f] bg-[#0e0c08] z-50 max-h-72 overflow-y-auto custom-scrollbar">
+                    {oyunSecenekleri.map((oyun) => (
+                      <li
+                        key={oyun}
+                        className={`px-4 py-2.5 text-xs font-serif tracking-widest cursor-pointer transition-all
+                        ${(oyun === "Diğer" && digerSecildiMi) || (!digerSecildiMi && oyun === seciliOyun)
+                            ? "text-[#d4af37] bg-[#1a1508]"
+                            : "text-[#8A7A4A] hover:text-[#d4af37] hover:bg-[#1a1508] hover:pl-5"
+                          }`}
+                        onClick={() => {
+                          if (oyun === "Diğer") {
+                            setDigerSecildiMi(true);
+                            setSeciliOyun("");
+                          } else {
+                            setDigerSecildiMi(false);
+                            setSeciliOyun(oyun);
+                          }
+                          setAcilirMenuAcikMi(false);
+                        }}
+                      >
+                        {oyun}
+                      </li>
+                    ))}
+                  </ul>
+                )}
+
+                {/* "Diğer" seçilince altına oyun adı inputu açılır */}
+                {digerSecildiMi && (
+                  <div className={`border transition-colors duration-500 flex flex-col justify-center focus-within:border-[#d4af37] ${isKindled ? 'bg-white/10 border-white/30 hover:border-white/50' : 'bg-white/5 border-[#b89e6e]/30 hover:border-[#b89e6e]/60'}`}>
+                    <input
+                      type="text"
+                      placeholder="OYUN ADINI GİRİN..."
+                      value={seciliOyun}
+                      onChange={(e) => setSeciliOyun(e.target.value)}
+                      className="w-full bg-transparent px-[14px] py-[12px] md:px-5 md:py-3 h-[44px] text-xs font-serif tracking-widest text-stone-200 placeholder:text-[#8A7A4A]/70 focus:outline-none uppercase"
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* EKLE BUTONU — Di\u011fer se\u00e7iliyse oyun ad\u0131 girilene kadar kapal\u0131 */}
+              <button
+                onClick={bossEkle}
+                disabled={!bossAdi.trim() || (digerSecildiMi && !seciliOyun.trim())}
+                className={`w-full md:w-40 border text-xs font-serif tracking-[0.2em] min-h-[44px] px-[20px] py-[13px] md:py-3 transition-all flex justify-center items-center gap-2 uppercase self-center ${bossAdi.trim() && !(digerSecildiMi && !seciliOyun.trim())
+                  ? "border-[#4a3f2d] bg-[#181208] text-[#8A7A4A] hover:bg-[#1e1810] hover:text-[#b8a665] cursor-pointer"
+                  : "border-[#332b1f] bg-[#050505] text-[#332b1f] cursor-not-allowed"
+                  }`}
+              >
+                <span>+</span> MÜHÜRLE
+              </button>
+            </div>
           </div>
-        </div>
+        )}
 
         {/* ─────────────────────────────────────────────────────── */}
         {/* 🎓 EMPTY STATE & LISTELER                              */}
@@ -879,7 +914,7 @@ export default function Home() {
                             </div>
                           )}
 
-                          <span className="relative font-serif text-[13px] leading-[19.5px] tracking-[0.91px] text-stone-200 uppercase font-normal truncate inline-block">
+                          <span className={`relative font-serif text-[13px] leading-[19.5px] tracking-[0.91px] uppercase truncate inline-block transition-colors duration-500 ${isKindled ? 'text-gray-100 font-medium' : 'text-stone-200 font-normal'}`}>
                             {boss.isim}
                             {/* Üstünü Çizme Animasyonu (Kılıç Kesiği) */}
                             <div
@@ -915,36 +950,42 @@ export default function Home() {
                     {/* MOBİL: Alt satır — KESİLDİ + ÖLDÜN + Sil butonları */}
                     <div className="flex items-center justify-start gap-[6px] md:mt-0 md:contents">
                       {/* VANQUISHED Butonu — FIX #4: Animasyon sırasında disabled */}
-                      <button
-                        onClick={() => kesil(boss.id)}
-                        disabled={kesilenAnimasyonId === boss.id}
-                        className={`h-[44px] min-h-[44px] flex-1 md:flex-none md:w-[110px] md:h-auto md:min-h-0 md:px-0 md:py-2 font-serif text-[8px] leading-[12px] tracking-[1.6px] uppercase border transition-all text-center font-normal flex-shrink-0 flex items-center justify-center ${kesilenAnimasyonId === boss.id
-                          ? "border-[#2a5a2a]/50 bg-[#0a1f0a]/50 text-[#4a904a]/50 cursor-not-allowed"
-                          : "border-[#3a7a3a] bg-[#0f2a0f] text-[#62B062] hover:bg-[#153015] hover:text-[#7ad07a] hover:border-[#4a9a4a] cursor-pointer"
-                          }`}
-                        style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }}
-                      >
-                        KESİLDİ
-                      </button>
+                      {activeRole !== 'observer' && (
+                        <button
+                          onClick={() => kesil(boss.id)}
+                          disabled={kesilenAnimasyonId === boss.id}
+                          className={`h-[44px] min-h-[44px] flex-1 md:flex-none md:w-[110px] md:h-auto md:min-h-0 md:px-0 md:py-2 font-serif text-[8px] leading-[12px] tracking-[1.6px] uppercase border transition-all text-center font-normal flex-shrink-0 flex items-center justify-center ${kesilenAnimasyonId === boss.id
+                            ? "border-[#2a5a2a]/50 bg-[#0a1f0a]/50 text-[#4a904a]/50 cursor-not-allowed"
+                            : "border-[#3a7a3a] bg-[#0f2a0f] text-[#62B062] hover:bg-[#153015] hover:text-[#7ad07a] hover:border-[#4a9a4a] cursor-pointer"
+                            }`}
+                          style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }}
+                        >
+                          KESİLDİ
+                        </button>
+                      )}
 
                       {/* DIED Butonu */}
-                      <button
-                        onClick={() => olumArttir(boss.id)}
-                        className="h-[44px] min-h-[44px] flex-1 md:flex-none md:w-[90px] md:h-auto md:min-h-0 md:px-0 md:py-2 font-serif text-[8px] leading-[12px] tracking-[1.6px] uppercase border border-[#7a3030] bg-[#2a0f0f] text-[#D06060] hover:bg-[#351515] hover:text-[#e07070] hover:border-[#9a4040] transition-all cursor-pointer text-center font-normal flex-shrink-0 flex items-center justify-center"
-                        style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }}
-                      >
-                        ÖLDÜN
-                      </button>
+                      {activeRole !== 'observer' && (
+                        <button
+                          onClick={() => olumArttir(boss.id)}
+                          className="h-[44px] min-h-[44px] flex-1 md:flex-none md:w-[90px] md:h-auto md:min-h-0 md:px-0 md:py-2 font-serif text-[8px] leading-[12px] tracking-[1.6px] uppercase border border-[#7a3030] bg-[#2a0f0f] text-[#D06060] hover:bg-[#351515] hover:text-[#e07070] hover:border-[#9a4040] transition-all cursor-pointer text-center font-normal flex-shrink-0 flex items-center justify-center"
+                          style={{ clipPath: 'polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px))' }}
+                        >
+                          ÖLDÜN
+                        </button>
+                      )}
 
                       {/* Silme Butonu */}
-                      <button
-                        onClick={() => sil(boss.id)}
-                        className="w-[44px] h-[44px] min-h-[44px] md:w-[30px] md:h-[44px] flex items-center justify-center border border-[#332b1f] bg-[#0a0907] text-[#5a5040] hover:text-[#b8a665] hover:border-[#4a3f2d] transition-all cursor-pointer flex-shrink-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
+                      {activeRole !== 'observer' && (
+                        <button
+                          onClick={() => sil(boss.id)}
+                          className="w-[44px] h-[44px] min-h-[44px] md:w-[30px] md:h-[44px] flex items-center justify-center border border-[#332b1f] bg-[#0a0907] text-[#5a5040] hover:text-[#b8a665] hover:border-[#4a3f2d] transition-all cursor-pointer flex-shrink-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -1026,14 +1067,16 @@ export default function Home() {
                       </div>
 
                       {/* Silme Butonu */}
-                      <button
-                        onClick={() => sil(boss.id)}
-                        className="w-[44px] h-[44px] min-h-[44px] md:w-[30px] md:h-[44px] flex items-center justify-center border border-[#1a1508] bg-[#060503] text-[#5a5040]/40 hover:text-[#b8a665] hover:border-[#332b1f] transition-all cursor-pointer flex-shrink-0">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg>
-                      </button>
+                      {activeRole !== 'observer' && (
+                        <button
+                          onClick={() => sil(boss.id)}
+                          className="w-[44px] h-[44px] min-h-[44px] md:w-[30px] md:h-[44px] flex items-center justify-center border border-[#1a1508] bg-[#060503] text-[#5a5040]/40 hover:text-[#b8a665] hover:border-[#332b1f] transition-all cursor-pointer flex-shrink-0">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}

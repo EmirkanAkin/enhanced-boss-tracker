@@ -2,24 +2,27 @@ import { useState } from 'react';
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore";
 import { db, generatePairingCode } from "../lib/firebase";
 
-export default function PairingModal({ isOpen, onClose, hunterId, setHunterId, showToast }) {
+export default function PairingModal({ isOpen, onClose, myHunterId, setActiveHunterId, setActiveRole, showToast }) {
   const [pairingMode, setPairingMode] = useState(null); // 'share' | 'connect' | null
   const [pairingCode, setPairingCode] = useState("");
   const [inputCode, setInputCode] = useState("");
   const [pairingError, setPairingError] = useState("");
   const [isPairingLoading, setIsPairingLoading] = useState(false);
+  const [selectedRole, setSelectedRole] = useState(null);
 
   if (!isOpen) return null;
 
   // Paylaşma Fonksiyonu
-  const handleShareDevice = async () => {
+  const handleShareDevice = async (role) => {
     setPairingMode("share");
+    setSelectedRole(role);
     setPairingError("");
     const code = generatePairingCode();
     setPairingCode(code);
     try {
       await setDoc(doc(db, "pairing_sessions", code), {
-        hunterId: hunterId,
+        hunterId: myHunterId,
+        role: role,
         createdAt: serverTimestamp()
       });
     } catch (e) {
@@ -40,14 +43,17 @@ export default function PairingModal({ isOpen, onClose, hunterId, setHunterId, s
     try {
       const docSnap = await getDoc(doc(db, "pairing_sessions", inputCode));
       if (docSnap.exists()) {
-        const newHunterId = docSnap.data().hunterId;
-        setHunterId(newHunterId);
-        localStorage.setItem("hunter_id", newHunterId);
+        const data = docSnap.data();
+        const newHunterId = data.hunterId;
+        const newRole = data.role || 'observer';
+        setActiveHunterId(newHunterId);
+        setActiveRole(newRole);
+        // Do NOT overwrite localStorage here
         onClose();
         setPairingMode(null);
         setInputCode("");
         if (showToast) {
-          showToast("Ruh Çağrıldı", "Başka bir dünyaya başarıyla bağlandınız", "", "success");
+          showToast("Ruh Çağrıldı", "Başka bir dünyaya başarıyla bağlandınız", `Yetki: ${newRole === 'editor' ? 'Yoldaş (Düzenleme)' : 'Gözlemci'}`, "success");
         }
       } else {
         setPairingError("Mühür Bulunamadı");
@@ -102,13 +108,21 @@ export default function PairingModal({ isOpen, onClose, hunterId, setHunterId, s
                 Başka bir dünyadaki avcıyla güçlerini birleştir veya kendi dünyanı başkalarına aç.
               </p>
               <div className="flex flex-col gap-4 w-full mt-2">
-                <button
-                  onClick={handleShareDevice}
-                  className="w-full border border-[#4a3f2d] bg-[#181208] text-[#E6DFC8] hover:bg-[#221a0c] hover:border-[#b8a665] transition-all px-4 py-4 font-serif text-[11px] tracking-[0.15em] uppercase flex flex-col items-center gap-2"
-                >
-                  <span>Mühür Oluştur</span>
-                  <span className="font-sans text-[9px] text-[#8A7A4A] tracking-normal lowercase normal-case">Bu cihazın ilerlemesini paylaş</span>
-                </button>
+                <div className="flex flex-col gap-2 p-3 border border-[#332b1f] bg-[#0f0c08]">
+                  <p className="font-serif text-[10px] tracking-widest text-[#E6DFC8] uppercase text-center mb-1">Kendi Dünyanı Paylaş</p>
+                  <button
+                    onClick={() => handleShareDevice('observer')}
+                    className="w-full border border-[#4a3f2d] bg-[#181208] text-[#8A7A4A] hover:bg-[#221a0c] hover:text-[#E6DFC8] hover:border-[#b8a665] transition-all px-4 py-2 font-serif text-[10px] tracking-[0.1em] uppercase flex justify-center items-center gap-2"
+                  >
+                    <span>Gözlemci Olarak</span>
+                  </button>
+                  <button
+                    onClick={() => handleShareDevice('editor')}
+                    className="w-full border border-[#4a3f2d] bg-[#181208] text-[#8A7A4A] hover:bg-[#221a0c] hover:text-[#E6DFC8] hover:border-[#b8a665] transition-all px-4 py-2 font-serif text-[10px] tracking-[0.1em] uppercase flex justify-center items-center gap-2"
+                  >
+                    <span>Yoldaş Olarak</span>
+                  </button>
+                </div>
                 <button
                   onClick={() => { setPairingMode("connect"); setPairingError(""); }}
                   className="w-full border border-[#1a1508] bg-[#050505] text-[#8A7A4A] hover:bg-[#0a0907] hover:text-[#E6DFC8] hover:border-[#4a3f2d] transition-all px-4 py-4 font-serif text-[11px] tracking-[0.15em] uppercase flex flex-col items-center gap-2"

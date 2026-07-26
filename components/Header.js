@@ -10,6 +10,11 @@ export default function Header({
   prevVolume,
   setPrevVolume,
   onVolumeToggle,
+  myHunterId,
+  activeHunterId,
+  onReturnHome,
+  isKindled,
+  toggleKindle,
 }) {
   return (
     <header className="w-full max-w-5xl flex flex-col md:flex-row justify-between items-stretch md:items-end gap-5 md:gap-0 pb-4 mb-6 relative">
@@ -36,20 +41,37 @@ export default function Header({
       </div>
 
       {/* Sağ Taraf: İstatistikler */}
-      <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-8 font-sans">
-        {/* Cihaz Eşleştir Butonu */}
-        <button
-          onClick={() => setIsPairingModalOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 border border-[#4a3f2d] bg-[#1a1508]/80 text-[#8A7A4A] hover:bg-[#2a2212] hover:text-[#b8a665] hover:border-[#8A7A4A] transition-all cursor-pointer font-serif text-[9px] tracking-[0.2em] uppercase shadow-[0_0_10px_rgba(180,148,60,0.05)]"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-            <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-            <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-          </svg>
-          <span className="hidden md:inline">Ruh Çağır</span>
-        </button>
+      <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 md:gap-8 font-sans flex-wrap">
+        
+        {/* Butonlar Grubu */}
+        <div className="flex items-center gap-2">
+          {/* Cihaz Eşleştir Butonu */}
+          <button
+            onClick={() => setIsPairingModalOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 border border-[#4a3f2d] bg-[#1a1508]/80 text-[#8A7A4A] hover:bg-[#2a2212] hover:text-[#b8a665] hover:border-[#8A7A4A] transition-all cursor-pointer font-serif text-[9px] tracking-[0.2em] uppercase shadow-[0_0_10px_rgba(180,148,60,0.05)]"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+            </svg>
+            <span className="hidden md:inline">Ruh Çağır</span>
+          </button>
 
-        <div className="flex items-center gap-8">
+          {myHunterId && activeHunterId && myHunterId !== activeHunterId && (
+            <button
+              onClick={onReturnHome}
+              className="flex items-center gap-1.5 px-3 py-1.5 border border-[#6b2c2c] bg-[#2a0e0e]/80 text-[#d96666] hover:bg-[#3d1414] hover:text-[#ff8080] hover:border-[#8c3b3b] transition-all cursor-pointer font-serif text-[9px] tracking-[0.2em] uppercase shadow-[0_0_10px_rgba(180,60,60,0.05)]"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+              <span className="hidden md:inline">Dön</span>
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3 md:gap-8">
           <div className="flex flex-col items-end">
             <span className="text-[#8A7A4A] font-sans text-[8px] font-normal leading-[12px] tracking-[1.76px] uppercase mb-0.5">KESİLEN</span>
             <span className="text-[#E6DFC8] font-sans text-[17px] font-light leading-[17px]">{kesilenSayisi}</span>
@@ -69,12 +91,12 @@ export default function Header({
             <span className="text-[#E6DFC8] font-sans text-[17px] font-light leading-[17px]">{toplamOlum}</span>
           </div>
 
-          <div className="w-px h-8 bg-[#4a3f2d]"></div>
+          <div className="w-px h-8 bg-[#4a3f2d] hidden md:block"></div>
         </div>
 
-        {/* Ses Kontrolcüsü */}
-        <div className="ml-auto md:ml-0 flex items-center group relative h-8">
-          <div className="overflow-hidden transition-all duration-500 ease-in-out flex items-center h-6 w-24 opacity-100 mr-2 md:w-0 md:opacity-0 md:mr-0 md:group-hover:w-24 md:group-hover:opacity-100 md:group-hover:mr-4">
+        {/* Ses Kontrolcüsü ve Meşale */}
+        <div className="ml-auto md:ml-0 flex items-center group relative h-8 gap-3">
+          <div className="overflow-hidden transition-all duration-500 ease-in-out flex items-center h-6 w-24 opacity-100 mr-2 md:w-0 md:opacity-0 md:mr-0 md:group-hover:w-24 md:group-hover:opacity-100 md:group-hover:mr-2">
             <input
               type="range"
               min="0"
@@ -99,7 +121,7 @@ export default function Header({
           </div>
 
           <div
-            className="text-[#b8a665] cursor-pointer transition-opacity opacity-100 md:opacity-60 md:group-hover:opacity-100"
+            className="text-[#b8a665] cursor-pointer transition-opacity opacity-100 md:opacity-60 md:group-hover:opacity-100 flex-shrink-0"
             onClick={() => {
               if (isMuted || volume === 0) {
                 setIsMuted(false);
@@ -126,6 +148,18 @@ export default function Header({
                 <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"></path>
               </svg>
             )}
+          </div>
+
+          <div className="w-px h-4 bg-[#4a3f2d] opacity-50 flex-shrink-0"></div>
+
+          <div
+            className={`cursor-pointer transition-all flex-shrink-0 duration-500 ${isKindled ? 'text-[#e25822] filter drop-shadow-[0_0_5px_rgba(226,88,34,0.6)]' : 'text-[#b8a665] opacity-100 md:opacity-60 md:hover:opacity-100'}`}
+            onClick={toggleKindle}
+            title={isKindled ? "Ateşi Söndür (Karanlık Mod)" : "Ateşi Harlat (Yüksek Kontrast)"}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5">
+              <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"></path>
+            </svg>
           </div>
         </div>
       </div>

@@ -276,9 +276,8 @@ const SplashScreen = ({ onEnter, audioPlay }) => {
   return (
     <div
       onClick={handleClick}
-      className={`fixed inset-0 z-[999] flex flex-col items-center justify-center cursor-pointer transition-all duration-[1500ms] ease-in-out ${
-        isFading ? "opacity-0 pointer-events-none bg-black" : "opacity-100"
-      }`}
+      className={`fixed inset-0 z-[999] flex flex-col items-center justify-center cursor-pointer transition-all duration-[1500ms] ease-in-out ${isFading ? "opacity-0 pointer-events-none bg-black" : "opacity-100"
+        }`}
       style={{
         background: isFading ? "#000" : "radial-gradient(circle at center, #110e0a 0%, #000000 100%)"
       }}
@@ -286,11 +285,11 @@ const SplashScreen = ({ onEnter, audioPlay }) => {
       <div className={`flex flex-col items-center gap-6 transition-all duration-[1200ms] ease-in-out ${isFading ? "blur-sm scale-110 opacity-0" : "scale-100 opacity-100 hover:scale-105"}`}>
         {/* Süsleme Çizgisi */}
         <div className="w-32 md:w-48 h-[1px] bg-gradient-to-r from-transparent via-[#AC8A34] to-transparent opacity-50"></div>
-        
+
         <h1 className="font-serif text-[#E6DFC8] text-xl md:text-2xl tracking-[0.4em] md:tracking-[0.5em] uppercase text-center antialiased drop-shadow-sm">
           GİRİŞ İÇİN TIKLAYIN
         </h1>
-        
+
         <p className="font-sans text-[#8A7A4A] text-[10px] md:text-xs tracking-[0.8em] uppercase opacity-70 text-center">
           AV BAŞLIYOR...
         </p>
@@ -310,6 +309,7 @@ export default function Home() {
   const [volume, setVolume] = useState(0.5);
   const [prevVolume, setPrevVolume] = useState(0.5);
   const audioRef = useRef(null);
+  const campfireAudioRef = useRef(null);
   const slashAudioRef = useRef(null);
 
   // Giriş Ekranı (Splash Screen) State & Logic
@@ -321,12 +321,19 @@ export default function Home() {
       setIsMuted(false);
       if (volume === 0) setVolume(0.5);
     }
+    if (campfireAudioRef.current) {
+      campfireAudioRef.current.play().catch(e => console.log("Campfire oynatma hatası:", e));
+    }
   };
 
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
       audioRef.current.muted = isMuted;
+    }
+    if (campfireAudioRef.current) {
+      campfireAudioRef.current.volume = volume;
+      campfireAudioRef.current.muted = isMuted;
     }
     if (slashAudioRef.current) {
       slashAudioRef.current.volume = volume;
@@ -373,7 +380,7 @@ export default function Home() {
         localStorage.setItem("hunter_id", storedId);
       }
       setMyHunterId(storedId);
-      
+
       const pairedHunterId = localStorage.getItem("paired_hunter_id");
       const pairedRole = localStorage.getItem("paired_role");
 
@@ -384,7 +391,7 @@ export default function Home() {
         setActiveHunterId(storedId);
         setActiveRole("owner");
       }
-      
+
       const storedKindled = localStorage.getItem("is_kindled") === "true";
       setIsKindled(storedKindled);
     } catch (e) {
@@ -466,9 +473,9 @@ export default function Home() {
   const showToast = (title, message, subMessage = "", type = "error") => {
     if (toastTimer1Ref.current) clearTimeout(toastTimer1Ref.current);
     if (toastTimer2Ref.current) clearTimeout(toastTimer2Ref.current);
-    
+
     setGlobalToast({ isVisible: true, title, message, subMessage, type, isLeaving: false });
-    
+
     toastTimer1Ref.current = setTimeout(() => setGlobalToast(prev => ({ ...prev, isLeaving: true })), 3000);
     toastTimer2Ref.current = setTimeout(() => setGlobalToast(prev => ({ ...prev, isVisible: false })), 3400);
   };
@@ -650,13 +657,13 @@ export default function Home() {
       {/* ─────────────────────────────────────────────────────── */}
       {/* 🔗 CİHAZ EŞLEŞTİRME (PAIRING) MODAL                        */}
       {/* ─────────────────────────────────────────────────────── */}
-      <PairingModal 
-        isOpen={isPairingModalOpen} 
-        onClose={() => setIsPairingModalOpen(false)} 
-        myHunterId={myHunterId} 
-        setActiveHunterId={setActiveHunterId} 
+      <PairingModal
+        isOpen={isPairingModalOpen}
+        onClose={() => setIsPairingModalOpen(false)}
+        myHunterId={myHunterId}
+        setActiveHunterId={setActiveHunterId}
         setActiveRole={setActiveRole}
-        showToast={showToast} 
+        showToast={showToast}
       />
 
       {/* Ateş köz animasyonu — en arka katman */}
@@ -673,7 +680,7 @@ export default function Home() {
         {/* ─────────────────────────────────────────────────────────── */}
         {/* 🎓 HEADER — Minimal & Zarif                                */}
         {/* ─────────────────────────────────────────────────────────── */}
-        <Header 
+        <Header
           setIsPairingModalOpen={setIsPairingModalOpen}
           kesilenSayisi={kesilenSayisi}
           toplamSayi={toplamSayi}
@@ -687,6 +694,9 @@ export default function Home() {
           onVolumeToggle={() => {
             if (audioRef.current && audioRef.current.paused) {
               audioRef.current.play().catch(e => console.log("Oynatma hatası:", e));
+            }
+            if (campfireAudioRef.current && campfireAudioRef.current.paused) {
+              campfireAudioRef.current.play().catch(e => console.log("Campfire oynatma hatası:", e));
             }
           }}
           myHunterId={myHunterId}
@@ -702,6 +712,7 @@ export default function Home() {
           toggleKindle={toggleKindle}
         />
         <audio ref={audioRef} src="/muzik.mp3" loop />
+        <audio ref={campfireAudioRef} src="/campfire.mp3" loop />
         <audio ref={slashAudioRef} src="/slashsound.mp3" preload="auto" />
 
         {/* ─────────────────────────────────────────────────────── */}

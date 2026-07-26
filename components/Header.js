@@ -42,7 +42,7 @@ export default function Header({
 
       {/* Sağ Taraf: İstatistikler */}
       <div className="flex items-center justify-between w-full md:w-auto md:justify-end gap-4 md:gap-8 font-sans flex-wrap">
-        
+
         {/* Butonlar Grubu */}
         <div className="flex items-center gap-2">
           {/* Kalıcı Bağlanma veya Bağlantıyı Kes Butonu */}
@@ -96,7 +96,7 @@ export default function Header({
 
         {/* Ses Kontrolcüsü ve Meşale */}
         <div className="ml-auto md:ml-0 flex items-center h-8 gap-3">
-          
+
           {/* Ses Grubu */}
           <div className="flex items-center group relative h-8">
             <div className="overflow-hidden transition-all duration-500 ease-in-out flex items-center h-6 w-24 opacity-100 mr-2 md:w-0 md:opacity-0 md:mr-0 md:group-hover:w-24 md:group-hover:opacity-100 md:group-hover:mr-2">

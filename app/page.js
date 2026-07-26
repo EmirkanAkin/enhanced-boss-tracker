@@ -373,8 +373,17 @@ export default function Home() {
         localStorage.setItem("hunter_id", storedId);
       }
       setMyHunterId(storedId);
-      setActiveHunterId(storedId);
-      setActiveRole("owner");
+      
+      const pairedHunterId = localStorage.getItem("paired_hunter_id");
+      const pairedRole = localStorage.getItem("paired_role");
+
+      if (pairedHunterId && pairedRole) {
+        setActiveHunterId(pairedHunterId);
+        setActiveRole(pairedRole);
+      } else {
+        setActiveHunterId(storedId);
+        setActiveRole("owner");
+      }
       
       const storedKindled = localStorage.getItem("is_kindled") === "true";
       setIsKindled(storedKindled);
@@ -685,6 +694,8 @@ export default function Home() {
           onReturnHome={() => {
             setActiveHunterId(myHunterId);
             setActiveRole('owner');
+            localStorage.removeItem("paired_hunter_id");
+            localStorage.removeItem("paired_role");
             showToast("Geri Dönüldü", "Kendi dünyanıza başarıyla döndünüz.", "", "success");
           }}
           isKindled={isKindled}

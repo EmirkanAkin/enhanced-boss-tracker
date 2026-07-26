@@ -48,7 +48,11 @@ export default function PairingModal({ isOpen, onClose, myHunterId, setActiveHun
         const newRole = data.role || 'observer';
         setActiveHunterId(newHunterId);
         setActiveRole(newRole);
-        // Do NOT overwrite localStorage here
+
+        // Kalıcı yoldaşlık için localStorage'a kaydet (kendi ana ID'mizi silmeden)
+        localStorage.setItem("paired_hunter_id", newHunterId);
+        localStorage.setItem("paired_role", newRole);
+
         onClose();
         setPairingMode(null);
         setInputCode("");
@@ -120,7 +124,7 @@ export default function PairingModal({ isOpen, onClose, myHunterId, setActiveHun
                     onClick={() => handleShareDevice('editor')}
                     className="w-full border border-[#4a3f2d] bg-[#181208] text-[#8A7A4A] hover:bg-[#221a0c] hover:text-[#E6DFC8] hover:border-[#b8a665] transition-all px-4 py-2 font-serif text-[10px] tracking-[0.1em] uppercase flex justify-center items-center gap-2"
                   >
-                    <span>Yoldaş Olarak</span>
+                    <span>Kalıcı Olarak</span>
                   </button>
                 </div>
                 <button

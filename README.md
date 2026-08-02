@@ -1,7 +1,5 @@
 # Düşenlerin Külliyatı - Boss Takipçisi 🗡️
 
-![Düşenlerin Külliyatı](https://imgur.com/tsrMe9j)
-
 Soulslike oyunları (Elden Ring, Sekiro, Bloodborne vb.) için özenle tasarlanmış, görsel olarak çarpıcı bir Boss Takipçisi web uygulaması. Bu proje, oyuncuların en zorlu düşmanlara karşı ilerlemelerini, ölümlerini ve zaferlerini takip etmeleri için dinamik ve etkileşimli bir başvuru kaynağı (külliyat) olarak hizmet vermektedir.
 
 ## ✨ Özellikler
